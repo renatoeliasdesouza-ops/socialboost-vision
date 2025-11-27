@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, Menu, User, LogOut } from "lucide-react";
+import { Sparkles, Menu, User, LogOut, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -51,12 +51,31 @@ export function Header() {
               <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-white/10 text-slate-200">
                 <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuItem className="focus:bg-white/10 focus:text-white cursor-pointer" asChild>
+                  <Link href="/app">
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Analisar Produto
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem className="focus:bg-white/10 focus:text-white cursor-pointer">
+                  <User className="w-4 h-4 mr-2" />
                   Perfil
                 </DropdownMenuItem>
                 <DropdownMenuItem className="focus:bg-white/10 focus:text-white cursor-pointer">
+                  <SettingsIcon className="w-4 h-4 mr-2" />
                   Configurações
                 </DropdownMenuItem>
+                {user.login === 'Admin' && (
+                  <>
+                    <DropdownMenuSeparator className="bg-white/10" />
+                    <DropdownMenuItem className="focus:bg-white/10 focus:text-primary cursor-pointer" asChild>
+                      <Link href="/admin">
+                        <SettingsIcon className="w-4 h-4 mr-2" />
+                        Painel Admin
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator className="bg-white/10" />
                 <DropdownMenuItem
                   className="text-red-400 focus:text-red-300 focus:bg-red-500/10 cursor-pointer"

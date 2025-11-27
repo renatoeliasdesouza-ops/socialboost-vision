@@ -1,6 +1,6 @@
 "use server";
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+
 
 export interface ProductAnalysisResult {
     product: {
@@ -30,6 +30,7 @@ export async function analyzeProductAction(
     name: string,
     description: string
 ): Promise<ProductAnalysisResult> {
+    const { GoogleGenerativeAI } = await import("@google/generative-ai");
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {

@@ -1,8 +1,5 @@
 "use server";
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import OpenAI from "openai";
-
 export interface ScrapedProductData {
     name: string;
     description: string;
@@ -11,6 +8,7 @@ export interface ScrapedProductData {
 }
 
 async function scrapeWithGemini(html: string): Promise<ScrapedProductData> {
+    const { GoogleGenerativeAI } = await import("@google/generative-ai");
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
         throw new Error("GEMINI_API_KEY não configurada");
@@ -50,6 +48,7 @@ Responda APENAS em formato JSON válido:
 }
 
 async function scrapeWithOpenAI(html: string): Promise<ScrapedProductData> {
+    const OpenAI = (await import("openai")).default;
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
         throw new Error("OPENAI_API_KEY não configurada");

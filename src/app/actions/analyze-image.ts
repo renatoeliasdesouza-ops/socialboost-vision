@@ -1,6 +1,6 @@
 "use server";
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+
 
 export interface ImageAnalysis {
     composition: string;
@@ -19,10 +19,14 @@ export async function analyzeImageAction(
     imageBase64: string,
     mimeType: string
 ): Promise<ImageAnalysis> {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const { GoogleGenerativeAI } = await import("@google/generative-ai");
+    const { getSettings } = await import("./admin-settings");
+
+    const settings = await getSettings();
+    const apiKey = settings.geminiKey || process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-        throw new Error("Chave da API do Google Gemini não configurada.");
+        throw new Error("Chave da API do Google Gemini não configurada (Admin ou .env).");
     }
 
     try {

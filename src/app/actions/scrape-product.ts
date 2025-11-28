@@ -9,9 +9,13 @@ export interface ScrapedProductData {
 
 async function scrapeWithGemini(html: string): Promise<ScrapedProductData> {
     const { GoogleGenerativeAI } = await import("@google/generative-ai");
-    const apiKey = process.env.GEMINI_API_KEY;
+    const { getSettings } = await import("./admin-settings");
+
+    const settings = await getSettings();
+    const apiKey = settings.geminiKey || process.env.GEMINI_API_KEY;
+
     if (!apiKey) {
-        throw new Error("GEMINI_API_KEY não configurada");
+        throw new Error("GEMINI_API_KEY não configurada (Admin ou .env)");
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
@@ -49,9 +53,13 @@ Responda APENAS em formato JSON válido:
 
 async function scrapeWithOpenAI(html: string): Promise<ScrapedProductData> {
     const OpenAI = (await import("openai")).default;
-    const apiKey = process.env.OPENAI_API_KEY;
+    const { getSettings } = await import("./admin-settings");
+
+    const settings = await getSettings();
+    const apiKey = settings.openaiKey || process.env.OPENAI_API_KEY;
+
     if (!apiKey) {
-        throw new Error("OPENAI_API_KEY não configurada");
+        throw new Error("OPENAI_API_KEY não configurada (Admin ou .env)");
     }
 
     const openai = new OpenAI({ apiKey });

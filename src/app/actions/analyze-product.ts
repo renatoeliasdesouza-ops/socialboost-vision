@@ -31,10 +31,13 @@ export async function analyzeProductAction(
     description: string
 ): Promise<ProductAnalysisResult> {
     const { GoogleGenerativeAI } = await import("@google/generative-ai");
-    const apiKey = process.env.GEMINI_API_KEY;
+    const { getSettings } = await import("./admin-settings");
+
+    const settings = await getSettings();
+    const apiKey = settings.geminiKey || process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-        throw new Error("Chave da API do Google Gemini não configurada.");
+        throw new Error("Chave da API do Google Gemini não configurada (Admin ou .env).");
     }
 
     try {

@@ -3,14 +3,30 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Save } from "lucide-react";
-import { useState } from "react";
-import { updateSettings } from "@/app/actions/admin-settings";
+import { Save, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { updateSettings, getSettings } from "@/app/actions/admin-settings";
 
 export default function SettingsPage() {
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [settings, setSettings] = useState<{ geminiKey: string, openaiKey: string, limits: any } | null>(null);
+
+    useEffect(() => {
+        loadSettings();
+    }, []);
+
+    async function loadSettings() {
+        try {
+            const data = await getSettings();
+            setSettings(data);
+        } catch (error) {
+            console.error("Erro ao carregar configurações:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     async function handleSubmit(formData: FormData) {
         setIsSaving(true);
@@ -20,14 +36,37 @@ export default function SettingsPage() {
             const result = await updateSettings(formData);
             if (result.success) {
                 setMessage({ type: 'success', text: result.message });
+                loadSettings(); // Reload to update state
             }
         } catch (error) {
             setMessage({ type: 'error', text: "Erro ao salvar configurações." });
         } finally {
             setIsSaving(false);
-            // Clear message after 3 seconds
             setTimeout(() => setMessage(null), 3000);
         }
+    }
+
+    async function handleDeleteKey(keyName: 'geminiKey' | 'openaiKey') {
+        if (!confirm("Tem certeza que deseja remover esta chave?")) return;
+
+        setIsSaving(true);
+        try {
+            const { deleteKey } = await import("@/app/actions/admin-settings");
+            const result = await deleteKey(keyName);
+            if (result.success) {
+                setMessage({ type: 'success', text: result.message });
+                loadSettings();
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: "Erro ao remover chave." });
+        } finally {
+            setIsSaving(false);
+            setTimeout(() => setMessage(null), 3000);
+        }
+    }
+
+    if (isLoading) {
+        return <div className="text-white">Carregando configurações...</div>;
     }
 
     return (
@@ -41,32 +80,82 @@ export default function SettingsPage() {
                 {/* API Keys */}
                 <Card className="p-6 bg-slate-900/50 border-white/10">
                     <h2 className="text-xl font-bold text-white mb-4">Chaves de API</h2>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
+                        {/* Gemini Key */}
                         <div>
                             <label className="text-sm font-medium text-slate-300 block mb-2">
                                 Google Gemini API Key
                             </label>
-                            <Input
-                                type="password"
-                                name="geminiKey"
-                                placeholder="AIza..."
-                                className="bg-slate-800/50 border-white/10 text-white"
-                            />
+                            <div className="flex gap-3">
+                                {settings?.geminiKey ? (
+                                    <div className="flex-1 flex items-center justify-between bg-slate-800/50 border border-green-500/30 rounded-md px-3 py-2">
+                                        <span className="text-slate-400 font-mono">••••••••••••••••</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-green-400 flex items-center gap-1">
+                                                <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                                                Ativa
+                                            </span>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleDeleteKey('geminiKey')}
+                                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8 p-0"
+                                                title="Remover chave"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <Input
+                                        type="password"
+                                        name="geminiKey"
+                                        placeholder="Cole sua chave AIza aqui..."
+                                        className="bg-slate-800/50 border-white/10 text-white"
+                                    />
+                                )}
+                            </div>
                             <p className="text-xs text-slate-500 mt-1">
-                                Chave para análise de produtos e imagens
+                                Chave principal para análise de produtos e imagens
                             </p>
                         </div>
 
+                        {/* OpenAI Key */}
                         <div>
                             <label className="text-sm font-medium text-slate-300 block mb-2">
                                 OpenAI API Key (Fallback)
                             </label>
-                            <Input
-                                type="password"
-                                name="openaiKey"
-                                placeholder="sk-..."
-                                className="bg-slate-800/50 border-white/10 text-white"
-                            />
+                            <div className="flex gap-3">
+                                {settings?.openaiKey ? (
+                                    <div className="flex-1 flex items-center justify-between bg-slate-800/50 border border-green-500/30 rounded-md px-3 py-2">
+                                        <span className="text-slate-400 font-mono">sk-••••••••••••••••</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-green-400 flex items-center gap-1">
+                                                <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                                                Ativa
+                                            </span>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleDeleteKey('openaiKey')}
+                                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8 p-0"
+                                                title="Remover chave"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <Input
+                                        type="password"
+                                        name="openaiKey"
+                                        placeholder="Cole sua chave sk-... aqui"
+                                        className="bg-slate-800/50 border-white/10 text-white"
+                                    />
+                                )}
+                            </div>
                             <p className="text-xs text-slate-500 mt-1">
                                 Chave de backup quando Gemini estiver indisponível
                             </p>
@@ -85,7 +174,7 @@ export default function SettingsPage() {
                             <Input
                                 type="number"
                                 name="limitFree"
-                                defaultValue="10"
+                                defaultValue={settings?.limits?.free || 10}
                                 className="bg-slate-800/50 border-white/10 text-white"
                             />
                         </div>
@@ -97,7 +186,7 @@ export default function SettingsPage() {
                             <Input
                                 type="number"
                                 name="limitBasic"
-                                defaultValue="100"
+                                defaultValue={settings?.limits?.basic || 100}
                                 className="bg-slate-800/50 border-white/10 text-white"
                             />
                         </div>
@@ -109,7 +198,7 @@ export default function SettingsPage() {
                             <Input
                                 type="number"
                                 name="limitPro"
-                                defaultValue="1000"
+                                defaultValue={settings?.limits?.pro || 1000}
                                 className="bg-slate-800/50 border-white/10 text-white"
                             />
                         </div>
@@ -119,8 +208,8 @@ export default function SettingsPage() {
                 {/* Feedback Message */}
                 {message && (
                     <div className={`p-4 rounded-lg text-sm ${message.type === 'success'
-                        ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                        : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                            ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                            : 'bg-red-500/10 text-red-400 border border-red-500/20'
                         }`}>
                         {message.text}
                     </div>
@@ -135,11 +224,11 @@ export default function SettingsPage() {
                         className="gap-2"
                     >
                         {isSaving ? (
-                            <>Salvnado...</>
+                            <>Salvando...</>
                         ) : (
                             <>
                                 <Save className="w-4 h-4" />
-                                Salvar Configurações
+                                Salvar Alterações
                             </>
                         )}
                     </Button>

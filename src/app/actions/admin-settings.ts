@@ -47,3 +47,13 @@ export async function updateSettings(formData: FormData) {
 
     return { success: true, message: "Configurações salvas com sucesso!" };
 }
+
+export async function deleteKey(keyName: 'geminiKey' | 'openaiKey') {
+    // Simulate DB delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    if (keyName === 'geminiKey') systemSettings.geminiKey = "";
+    if (keyName === 'openaiKey') systemSettings.openaiKey = "";
+
+    return { success: true, message: "Chave removida com sucesso!" };
+}
